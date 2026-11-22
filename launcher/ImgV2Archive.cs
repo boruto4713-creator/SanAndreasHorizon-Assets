@@ -39,7 +39,7 @@ internal static class ImgV2Archive
 
         try
         {
-            using var source = new FileStream(imgPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var source = new FileStream(imgPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
             var entries = ReadDirectory(source);
             EnsureRequiredEntries(entries);
 
@@ -84,6 +84,8 @@ internal static class ImgV2Archive
                     if (output.Position / SectorSize > uint.MaxValue)
                         throw new InvalidDataException("El archivo IMG supera el límite de desplazamiento del formato.");
 
+                    uint originalOffsetSectors = entry.OffsetSectors;
+                    ushort originalSizeSectors = entry.SizeSectors;
                     entry.OffsetSectors = checked((uint)(output.Position / SectorSize));
 
                     if (replacements.TryGetValue(entry.Name, out var replacement))
@@ -98,8 +100,8 @@ internal static class ImgV2Archive
                     }
                     else
                     {
-                        long length = (long)entry.SizeSectors * SectorSize;
-                        long sourceOffset = (long)entry.OffsetSectors * SectorSize;
+                        long length = (long)originalSizeSectors * SectorSize;
+                        long sourceOffset = (long)originalOffsetSectors * SectorSize;
                         source.Position = sourceOffset;
 
                         long remaining = length;
