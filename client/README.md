@@ -5,34 +5,36 @@
 - [bmx.dff](https://raw.githubusercontent.com/boruto4713-creator/SanAndreasHorizon-Assets/main/bmx.dff)
 - [bmx.txd](https://raw.githubusercontent.com/boruto4713-creator/SanAndreasHorizon-Assets/main/bmx.txd)
 
-Tamanos verificados en GitHub: DFF 16,250,880 bytes; TXD 563,200 bytes.
+Tamanos verificados: DFF 16,250,880 bytes; TXD 563,200 bytes.
 
 ## Modelo de Horizon
 
-El gamemode existente crea las diez bicicletas con `CreateVehicle(481)`.
-La sustitucion buscada es solo visual: mantener el ID 481 y las fisicas originales.
-No se debe cambiar `Horizon.pwn` ni la skin de la recepcionista.
+El gamemode crea las bicicletas con `CreateVehicle(481)`. El objetivo es sustituir solo su apariencia, manteniendo el ID y las propiedades nativas del vehiculo. No se modifica `Horizon.pwn`, el sistema de la recepcionista ni `config.json`.
 
-## Configuracion de descarga preparada
+## Cliente compilado
 
-`client/custom_vehicles.ini` contiene los enlaces HTTP directos y la ruta local esperada por el descargador ASI de referencia. Debe copiarse al directorio de GTA SA junto a un ASI compatible, cuando exista un build corregido.
+El workflow de GitHub Actions compila `custom_vehicles.asi` para Windows de 32 bits. El cargador se modifica para:
 
-## Estado tecnico: pendiente
+- descargar los DFF/TXD desde las URLs de este repositorio fuera de `DllMain`;
+- leer `custom_vehicles.ini` al inicializar el juego y registrar el modelo 481;
+- no editar `models/gta3.img`;
+- restaurar los campos principales del model-info original si falla la carga.
 
-El repositorio de referencia [YeyoDiego223/samp-custom-vehicles](https://github.com/YeyoDiego223/samp-custom-vehicles) no esta listo para instalarse tal cual:
+El paquete se genera como artefacto de GitHub Actions llamado `Horizon-BMX-Client`.
 
-- La funcion cliente `loadConfig()` que registra el modelo se define, pero no aparece invocada en el codigo publicado.
-- La rutina de parcheo actual solo parchea el DFF en `gta3.img`; el propio codigo registra que el parcheo del TXD queda para una version futura.
-- El plugin Pawn `RegisterVehicleModel` guarda datos en una tabla local del servidor; el codigo publicado no implementa el envio de ese registro al cliente.
-- El ASI usa direcciones fijas de memoria para GTA San Andreas 1.0 US y modifica `models/gta3.img`.
+## Instalacion para cada jugador
 
-Por estos motivos no se incluye un DLL/ASI compilado ni se recomienda instalar el binario de una fuente no verificada. La configuracion y los modelos estan alojados, pero la sustitucion automatica aun no esta operativa.
+Requisitos declarados por el proyecto base: GTA San Andreas 1.0 US, SA-MP 0.3.DL-R1 y un ASI Loader compatible.
 
-## Requisitos que declara el proyecto de referencia
+Cada jugador debe instalar una sola vez `custom_vehicles.asi` y `custom_vehicles.ini` en la carpeta raiz del GTA (junto a `gta_sa.exe`). Despues el ASI descarga el DFF y el TXD desde GitHub a `models/custom`. La descarga de los modelos es automatica; el ASI y el INI son la instalacion inicial.
 
-- GTA San Andreas 1.0 US.
-- Cliente SA-MP 0.3.DL-R1.
-- ASI loader.
-- Un ASI corregido y probado con el DFF/TXD de Horizon.
+No se agrega ningun DLL al servidor open.mp: el reemplazo de un slot existente, 481, se realiza en el cliente.
 
-El servidor Horizon usa open.mp. El plugin Pawn de referencia no debe agregarse a `config.json` hasta demostrar su compatibilidad y corregir la comunicacion cliente-servidor.
+## Estado y limitaciones
+
+- La compilacion de Windows x86 del ASI paso en GitHub Actions.
+- **Aun falta probarlo dentro de GTA SA** con un cliente 1.0 US + SA-MP 0.3.DL-R1. Una compilacion correcta no garantiza que las direcciones internas y la carga RenderWare funcionen en todos los clientes.
+- El proyecto base usa direcciones fijas de memoria. No usar con versiones Steam, 1.01, compactadas o ejecutables distintos a GTA SA 1.0 US.
+- Antes de probar, hacer copia de seguridad de la carpeta GTA. Esta version no modifica `gta3.img`.
+
+El proyecto fuente de referencia es [YeyoDiego223/samp-custom-vehicles](https://github.com/YeyoDiego223/samp-custom-vehicles), fijado al commit `f88d8e19ceff350a477925a7bd668353cd305f79`.
