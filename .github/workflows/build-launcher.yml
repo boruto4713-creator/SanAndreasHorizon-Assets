@@ -1,0 +1,45 @@
+name: Build San Andreas Horizon Launcher
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "launcher/**"
+      - "README.md"
+      - ".github/workflows/build-launcher.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-launcher:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish portable Windows launcher
+        shell: pwsh
+        run: dotnet publish launcher/SanAndreasHorizonLauncher.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false --output publish
+
+      - name: Prepare package
+        shell: pwsh
+        run: |
+          if (!(Test-Path "publish/SanAndreasHorizonLauncher.exe")) {
+            throw "No se generó SanAndreasHorizonLauncher.exe"
+          }
+          Copy-Item README.md publish/LEEME.txt
+          Compress-Archive -Path publish/* -DestinationPath SanAndreasHorizon-Launcher-win-x64.zip -Force
+
+      - name: Upload launcher package
+        uses: actions/upload-artifact@v4
+        with:
+          name: SanAndreasHorizon-Launcher-win-x64
+          path: SanAndreasHorizon-Launcher-win-x64.zip
+          if-no-files-found: error
+          retention-days: 30
