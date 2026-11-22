@@ -38,9 +38,9 @@ internal sealed class MainForm : Form
     private readonly ProgressBar _progress = new();
     private readonly Label _status = new();
     private readonly TextBox _log = new();
-    private readonly Button _installButton;
-    private readonly Button _restoreButton;
-    private readonly Button _playButton;
+    private Button _installButton = null!;
+    private Button _restoreButton = null!;
+    private Button _playButton = null!;
 
     public MainForm()
     {
